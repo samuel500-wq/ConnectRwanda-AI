@@ -1,0 +1,116 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: hodari-frontend
+  annotations:
+    run.googleapis.com/launch-stage: BETA
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "3"
+        run.googleapis.com/execution-environment: gen2
+    spec:
+      serviceAccountName: hodari-agent@YOUR_GCP_PROJECT_ID.iam.gserviceaccount.com
+      containers:
+      - name: hodari-frontend
+        image: us-central1-docker.pkg.dev/YOUR_GCP_PROJECT_ID/hodari/frontend@sha256:REPLACE_WITH_YOUR_IMAGE_DIGEST
+        ports:
+        - containerPort: 3000
+        resources:
+          limits:
+            memory: 512Mi
+            cpu: "1"
+        env:
+        - name: ADK_BASE_URL
+          value: https://hodari-agent-YOUR_PROJECT_NUMBER.us-central1.run.app
+        - name: ADK_APP_NAME
+          value: hodari
+        - name: GOOGLE_GENAI_USE_VERTEXAI
+          value: "TRUE"
+        - name: GOOGLE_CLOUD_PROJECT
+          value: YOUR_GCP_PROJECT_ID
+        - name: GEMINI_VOICE_LOCATION
+          value: us-central1
+        # Dedicated, API-restricted server key (Routes + Places + photos) — split
+        # from the agent's Grounding-Lite key for least-privilege blast radius.
+        - name: GOOGLE_MAPS_SERVER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: GOOGLE_MAPS_SERVER_KEY
+              key: latest
+        - name: MONGODB_MCP_URL
+          value: http://localhost:3100/mcp
+        - name: MONGODB_DATABASE
+          value: hodari
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: MONGODB_URI
+              key: latest
+        # Signs the httpOnly session cookie so identity is server-authoritative
+        # (see SECURITY_HARDENING.md P0.1).
+        - name: HODARI_SESSION_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: HODARI_SESSION_SECRET
+              key: latest
+        # Google OAuth (sign-in). Set the real values in Secret Manager before
+        # deploying this revision, or sign-in shows "not set up".
+        - name: GOOGLE_OAUTH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: GOOGLE_OAUTH_CLIENT_ID
+              key: latest
+        - name: GOOGLE_OAUTH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: GOOGLE_OAUTH_CLIENT_SECRET
+              key: latest
+        # Pins the OAuth redirect URI so it always matches what's registered in
+        # the Google OAuth client (avoids redirect_uri mismatch across URLs).
+        - name: PUBLIC_BASE_URL
+          value: https://hodari-frontend-YOUR_PROJECT_NUMBER.us-central1.run.app
+        # Audience for the Google ID token the frontend mints to call the agent
+        # service (so the agent can drop allUsers and accept only this SA).
+        # See BILLING.md → "Lock the agent endpoint".
+        - name: AGENT_AUDIENCE
+          value: https://hodari-agent-YOUR_PROJECT_NUMBER.us-central1.run.app
+        # Owner/staff accounts that bypass usage metering (comma-separated emails).
+        - name: HODARI_UNLIMITED_EMAILS
+          value: you@example.com
+        # ── Billing (Stripe) ─────────────────────────────────────────────────
+        # Stripe Price ids per credit pack (NOT secret — safe as plain values).
+        - name: STRIPE_PRICE_STARTER
+          value: price_REPLACE_ME_starter
+        - name: STRIPE_PRICE_EXPLORER
+          value: price_REPLACE_ME_explorer
+        - name: STRIPE_PRICE_TOURNAMENT
+          value: price_REPLACE_ME_tournament
+        # Secret keys — create these Secret Manager secrets, then UNCOMMENT.
+        # Until then the free tier works and the paywall shows "not enabled".
+        # - name: STRIPE_SECRET_KEY
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: STRIPE_SECRET_KEY
+        #       key: latest
+        # - name: STRIPE_WEBHOOK_SECRET
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: STRIPE_WEBHOOK_SECRET
+        #       key: latest
+
+      # ── MongoDB MCP sidecar (for login route) ─────────────────────────────
+      - name: mongodb-mcp
+        image: us-central1-docker.pkg.dev/YOUR_GCP_PROJECT_ID/hodari/mongodb-mcp@sha256:REPLACE_WITH_YOUR_IMAGE_DIGEST
+        resources:
+          limits:
+            memory: 256Mi
+            cpu: "0.5"
+        env:
+        - name: MDB_MCP_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: MONGODB_URI
+              key: latest

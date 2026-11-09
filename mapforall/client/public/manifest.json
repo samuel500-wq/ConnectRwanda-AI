@@ -1,0 +1,13 @@
+{
+  "name": "MapForAll — Ikarita ya Bose",
+  "short_name": "MapForAll",
+  "description": "MapForAll, Ikarita ya Bose. Trouvez des lieux accessibles et des commerces locaux.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0C0B0A",
+  "theme_color": "#0C0C0E",
+  "icons": [
+    { "src": "/api/pwa-icon?size=192", "sizes": "192x192", "type": "image/png" },
+    { "src": "/api/pwa-icon?size=512", "sizes": "512x512", "type": "image/png" }
+  ]
+}

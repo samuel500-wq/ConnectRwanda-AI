@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.venv/
+venv/
+
+# Next.js builds
+.next/
+out/
+build/
+dist/
+
+# Environment Variables (NEVER PUSH THESE)
+.env
+.env.local
+.env.production
+.env.development
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+artifacts/
+
+# OS / IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

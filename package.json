@@ -1,0 +1,20 @@
+{
+  "name": "connectrwanda-ai",
+  "version": "1.0.0",
+  "description": "Unified ConnectRwanda AI Platform — Intelligent Transit (RouteView) + Accessible Discovery (MapForAll)",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -k -p \"[{name}]\" -n \"landing,routeview,mapforall,backend,ml\" -c \"blue.bold,cyan.bold,yellow.bold,magenta.bold,green.bold\" \"npm run dev:landing\" \"npm run dev:routeview\" \"npm run dev:mapforall\" \"npm run dev:backend\" \"npm run dev:ml\"",
+    "dev:landing": "npm --prefix connectrwanda-platform run dev",
+    "dev:routeview": "npm --prefix routeviews/frontend run dev",
+    "dev:mapforall": "npm --prefix mapforall/client run dev -- -p 3001",
+    "dev:backend": "npm --prefix routeviews/backend run dev",
+    "dev:ml": "uvicorn service:app --port 8000 --app-dir routeviews/ml",
+    "build:landing": "npm --prefix connectrwanda-platform run build",
+    "build:routeview": "npm --prefix routeviews/frontend run build",
+    "build:mapforall": "npm --prefix mapforall/client run build"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

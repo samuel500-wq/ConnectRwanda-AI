@@ -1,0 +1,987 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Hodari theme tokens (light default) ───────────────────────────────────── */
+:root {
+  --bg-chat: #F6F0E6;
+  --bg-sidebar: #FFFBF6;
+  --bg-header: #FFFBF6;
+  --text-primary: #1A1614;
+  --text-secondary: #5A4E44;
+  --bubble-ai: #FFFBF6;
+  --bubble-user: #FFE4CC;
+  --border: #E2D4C2;
+
+  --color-bg:       246 240 230;
+  --color-surface:  255 251 246;
+  --color-surface2: 243 234 220;
+  --color-surface3: 230 217 200;
+  --color-text:     26 22 20;
+  --color-text2:    90 78 68;
+  --color-text3:    138 122 108;
+  --color-border:   226 212 194;
+}
+
+.dark {
+  --bg-chat: #12100E;
+  --bg-sidebar: #1C1916;
+  --bg-header: #221E1A;
+  --text-primary: #F6F0E6;
+  --text-secondary: #C4B5A4;
+  --bubble-ai: #221E1A;
+  --bubble-user: rgba(245, 106, 0, 0.22);
+  --border: #3A322C;
+
+  --color-bg:       18 16 14;
+  --color-surface:  28 25 22;
+  --color-surface2: 36 31 27;
+  --color-surface3: 58 50 44;
+  --color-text:     246 240 230;
+  --color-text2:    196 181 164;
+  --color-text3:    140 124 108;
+  --color-border:   58 50 44;
+}
+
+/* ── Page shell ─────────────────────────────────────────────────────────── */
+/* Chat/PWA shell needs a fixed viewport. Admin routes scroll inside
+   `.admin-scroll` (see AdminShell) while body stays overflow-hidden. */
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+/* When AdminShell mounts it toggles this class so the admin content column
+   can scroll without fighting the chat shell. */
+html.admin-app,
+html.admin-app body {
+  overflow: hidden;
+  height: 100%;
+}
+
+/* App viewport height: 100dvh where supported so the iOS/Android URL bar and
+   on-screen keyboard don't leave the layout taller than the visible screen.
+   (100vh fallback for older browsers.) */
+.app-shell {
+  height: 100vh;
+  height: 100dvh;
+  isolation: isolate;
+}
+.app-shell > * {
+  z-index: 1;
+}
+
+/* Notch / home-indicator safe areas (viewport-fit=cover). */
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+
+/* Momentum scrolling in panels on iOS. */
+.chat-scroll,
+.scrollbar-hide,
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Mobile bottom sheet ──────────────────────────────────────────────────── */
+.sheet-grabber {
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgb(var(--color-border));
+}
+
+body {
+  background: var(--bg-chat);
+  color: var(--text-primary);
+}
+
+/* ── Grain texture overlay ────────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 200px 200px;
+}
+
+/* ── Landing-page cinematics ──────────────────────────────────────────────── */
+@keyframes hero-map-drift {
+  from { transform: scale(1.08) translate3d(0.6%, 1.2%, 0); }
+  to   { transform: scale(1.2) translate3d(-1.2%, -2.2%, 0); }
+}
+.hero-map-drift {
+  animation: hero-map-drift 26s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes hero-glow-pulse {
+  0%, 100% { opacity: 0.65; transform: scale(1); }
+  50%      { opacity: 1; transform: scale(1.04); }
+}
+.hero-glow-pulse { animation: hero-glow-pulse 9s ease-in-out infinite; }
+
+@keyframes hero-sheen {
+  0%        { transform: translateX(-140%) skewX(-18deg); opacity: 0; }
+  6%        { opacity: 1; }
+  18%, 100% { transform: translateX(340%) skewX(-18deg); opacity: 0; }
+}
+.hero-sheen {
+  animation: hero-sheen 11s ease-in-out 2s infinite;
+  will-change: transform;
+}
+
+@keyframes admin-nav-progress {
+  0% { transform: scaleX(0.08); opacity: 1; }
+  40% { transform: scaleX(0.55); }
+  80% { transform: scaleX(0.85); }
+  100% { transform: scaleX(1); opacity: 0.35; }
+}
+.admin-nav-progress {
+  animation: admin-nav-progress 0.42s var(--ease-glide, cubic-bezier(0.22, 1, 0.36, 1)) forwards;
+  transform-origin: left center;
+}
+
+@keyframes hero-chip-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-9px); }
+}
+.hero-chip-float { animation: hero-chip-float 7s ease-in-out infinite; }
+.hero-chip-float-late { animation: hero-chip-float 8.5s ease-in-out 1.6s infinite; }
+
+@keyframes mf-pin-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.mf-pin-wrap.leaflet-div-icon { background: transparent; border: none; }
+.mf-pin { display: block; animation: mf-pin-in 280ms ease both; }
+.mf-pin-dot {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #E8672A;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+.mf-pin-dot.is-ring {
+  width: 10px;
+  height: 10px;
+  box-shadow: 0 0 0 3px #fff, 0 1px 2px rgba(0, 0, 0, 0.28);
+}
+
+@keyframes mf-menu-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+.mf-menu-in {
+  animation: mf-menu-in 150ms ease-out both;
+}
+
+/* Instant press feedback. :active wins over slower hover transitions. */
+button:active:not(:disabled),
+a:active,
+[role="button"]:active {
+  opacity: 0.72;
+  transition: opacity 40ms linear;
+}
+
+/* Feathered edges so the hero map melts into the page background */
+.hero-map-mask {
+  -webkit-mask-image: radial-gradient(115% 115% at 50% 44%, #000 52%, transparent 76%);
+  mask-image: radial-gradient(115% 115% at 50% 44%, #000 52%, transparent 76%);
+}
+
+/* Infinite showcase belt: track holds two copies, loops by half its width */
+@keyframes landing-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.landing-marquee {
+  animation: landing-marquee 52s linear infinite;
+  will-change: transform;
+}
+.landing-marquee-pausable:hover .landing-marquee { animation-play-state: paused; }
+
+/* ── Landing (iOS-style redesign) ─────────────────────────────────────────── */
+/* Headline accent: brand orange sliding slowly through a deeper orange.
+   Darkest stop keeps large text above 3:1 on the cream page. */
+@keyframes mf-shimmer {
+  from { background-position: 0% 50%; }
+  to   { background-position: 200% 50%; }
+}
+.mf-gradient-text,
+.mf-gradient-on-dark {
+  background-image: linear-gradient(90deg, #E8672A 0%, #B8441A 35%, #E8672A 65%, #C2451A 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: mf-shimmer 7s linear infinite;
+}
+/* Same accent for text that always sits on a dark photo (login panel). */
+.mf-gradient-on-dark,
+.dark .mf-gradient-text {
+  background-image: linear-gradient(90deg, #FF9A63 0%, #E8672A 35%, #FFB285 65%, #E8672A 100%);
+}
+
+/* Slow drifting glow behind the closing call to action. */
+@keyframes mf-glow-drift {
+  0%   { transform: translate3d(-12%, -6%, 0) scale(1); }
+  50%  { transform: translate3d(10%, 8%, 0) scale(1.15); }
+  100% { transform: translate3d(-12%, -6%, 0) scale(1); }
+}
+.mf-glow-drift { animation: mf-glow-drift 14s ease-in-out infinite; }
+
+/* Live map inside the phone: the view breathes, reports ripple in one after
+   another, the visitor's dot pulses, and a light runs along the route. */
+@keyframes mf-map-breathe {
+  0%, 100% { transform: scale(1.04) translate3d(0, 0, 0); }
+  50%      { transform: scale(1.1) translate3d(-1.5%, 1%, 0); }
+}
+.mf-map-breathe { animation: mf-map-breathe 18s ease-in-out infinite; transform-origin: 45% 35%; }
+
+@keyframes mf-report-ping {
+  0%, 8%    { transform: scale(0.4); opacity: 0; }
+  14%       { transform: scale(1); opacity: 0.55; }
+  40%, 100% { transform: scale(3.4); opacity: 0; }
+}
+@keyframes mf-report-dot {
+  0%, 6%    { transform: scale(0); opacity: 0; }
+  14%, 70%  { transform: scale(1); opacity: 1; }
+  85%, 100% { transform: scale(0); opacity: 0; }
+}
+.mf-report-ping { animation: mf-report-ping 5.6s ease-out infinite both; }
+.mf-report-dot  { animation: mf-report-dot 5.6s cubic-bezier(0.28, 0.11, 0.32, 1) infinite both; }
+
+@keyframes mf-me-halo {
+  0%, 100% { transform: scale(0.7); opacity: 0.9; }
+  50%      { transform: scale(1.25); opacity: 0.35; }
+}
+.mf-me-halo { animation: mf-me-halo 2.4s ease-in-out infinite; }
+
+@keyframes mf-route-comet {
+  from { stroke-dashoffset: 104; }
+  to   { stroke-dashoffset: 0; }
+}
+.mf-route-comet {
+  stroke-dasharray: 4 100;
+  animation: mf-route-comet 2.6s cubic-bezier(0.45, 0, 0.55, 1) 1.2s infinite both;
+  filter: drop-shadow(0 0 3px rgba(232, 103, 42, 0.9));
+}
+
+/* Login panel slideshow: each photo zooms out slowly while it is shown, and
+   the story bar fills over the same time. The bar's animationend advances
+   the slide, so pausing the page freezes both. */
+@keyframes mf-kenburns {
+  from { transform: scale(1.14) translate3d(1%, 1%, 0); }
+  to   { transform: scale(1.02) translate3d(0, 0, 0); }
+}
+.mf-kenburns { animation: mf-kenburns 9s cubic-bezier(0.28, 0.11, 0.32, 1) both; }
+
+@keyframes mf-story-bar {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+.mf-story-bar { animation: mf-story-bar linear both; }
+
+/* Keyboard focus: a clear orange ring on every control of the landing. */
+.mf-landing a:focus-visible,
+.mf-landing button:focus-visible,
+.mf-landing [tabindex]:focus-visible {
+  outline: 2.5px solid #E8672A;
+  outline-offset: 3px;
+}
+
+/* Visitor pressed the page's pause button: freeze every CSS loop too. */
+.mf-landing.mf-paused *,
+.mf-landing.mf-paused *::before,
+.mf-landing.mf-paused *::after {
+  animation-play-state: paused !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mf-gradient-text,
+  .mf-gradient-on-dark,
+  .mf-glow-drift,
+  .mf-map-breathe,
+  .mf-report-ping,
+  .mf-report-dot,
+  .mf-me-halo,
+  .mf-route-comet,
+  .mf-kenburns { animation: none; }
+  .mf-report-dot { transform: scale(1); opacity: 1; }
+  .hero-map-drift,
+  .hero-glow-pulse,
+  .hero-sheen,
+  .hero-chip-float,
+  .hero-chip-float-late,
+  .mf-pin,
+  .mf-menu-in,
+  .landing-marquee { animation: none; }
+}
+
+/* ── Landing-page liquid glass utilities ──────────────────────────────────── */
+.liquid-glass {
+  position: relative;
+  background: rgba(255, 255, 255, 0.01);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.liquid-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.05));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+.liquid-glass-strong {
+  background: rgba(255, 255, 255, 0.01);
+  backdrop-filter: blur(50px);
+  -webkit-backdrop-filter: blur(50px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgb(var(--color-border)); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgb(var(--color-surface3)); }
+
+.chat-scroll::-webkit-scrollbar { width: 5px; }
+.chat-scroll::-webkit-scrollbar-track { background: transparent; }
+.chat-scroll::-webkit-scrollbar-thumb {
+  background: #F56A00;
+  border-radius: 99px;
+}
+.dark .chat-scroll::-webkit-scrollbar-thumb {
+  background: #C44A00;
+}
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Admin content column: thin themed scrollbar (desktop). Mobile keeps native. */
+.admin-scroll {
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(110, 91, 80, 0.45) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+.admin-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.admin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 4px 0;
+}
+.admin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(110, 91, 80, 0.35);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.admin-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(232, 103, 42, 0.55);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.dark .admin-scroll {
+  scrollbar-color: rgba(251, 243, 231, 0.28) transparent;
+}
+.dark .admin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(251, 243, 231, 0.22);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.dark .admin-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(232, 103, 42, 0.65);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+@media (max-width: 767px) {
+  .admin-scroll {
+    scrollbar-width: auto;
+    scrollbar-gutter: auto;
+  }
+  .admin-scroll::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+}
+
+/* ── Motion system ────────────────────────────────────────────────────────
+   Single source of truth for timing. Motion identity: "the map is the
+   protagonist; UI moves like cartography" — calm glide, no bounce, no
+   cartoon springs. Every keyframe/animation class below (and the framer-
+   motion variants in components/ui/motion.ts + lib/design/tokens.ts, which
+   mirror these values) resolves to one of these vars. Nothing animates that
+   doesn't communicate a state change.
+   ─────────────────────────────────────────────────────────────────────── */
+:root {
+  --ease-glide: cubic-bezier(0.22, 1, 0.36, 1); /* entrances/exits — the one "arriving" feel */
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1); /* hover/press micro-interactions — a softer stop */
+  --dur-fast: 150ms; /* press feedback, just-sent bubbles */
+  --dur-base: 250ms; /* default entrance — panels, cards, messages */
+  --dur-slow: 400ms; /* large/heavy surfaces only */
+}
+
+/* ── Motion keyframes ─────────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes place-card-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+.place-card-in {
+  animation: place-card-in 150ms ease-out;
+  transform-origin: center bottom;
+}
+.gm-style .gm-style-iw-c {
+  border-radius: 16px !important;
+  padding: 0 !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.38) !important;
+}
+.gm-style .gm-style-iw-d {
+  overflow: hidden !important;
+  border-radius: 16px !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .place-card-in,
+  .gm-style .gm-style-iw-c { animation: none; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes waveBar {
+  0%, 100% { transform: scaleY(0.4); }
+  50%       { transform: scaleY(1); }
+}
+@keyframes route-draw {
+  0%   { transform: scaleX(0); opacity: 0.9; }
+  45%  { transform: scaleX(1); opacity: 1; }
+  65%  { transform: scaleX(1); opacity: 1; }
+  82%  { transform: scaleX(1); opacity: 0; }
+  83%  { transform: scaleX(0); opacity: 0; }
+  100% { transform: scaleX(0); opacity: 0.9; }
+}
+@keyframes presence-pulse {
+  0%   { transform: scale(0.6); box-shadow: 0 0 0 0 rgba(0, 196, 122, 0.5); }
+  60%  { transform: scale(1.25); box-shadow: 0 0 0 6px rgba(0, 196, 122, 0); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 196, 122, 0); }
+}
+@keyframes scan {
+  0%, 60%, 100% { opacity: 0.15; transform: translateY(0); }
+  30%           { opacity: 1;    transform: translateY(-3px); }
+}
+@keyframes caret-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+@keyframes caret-fade-out {
+  to { opacity: 0; }
+}
+@keyframes location-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.5); }
+  60%      { box-shadow: 0 0 0 9px rgba(66, 133, 244, 0); }
+}
+@keyframes voice-orb-pulse {
+  0%, 100% { transform: scale(1);    opacity: 0.55; }
+  50%      { transform: scale(1.35); opacity: 0.9;  }
+}
+@keyframes voice-orb-pulse-2 {
+  0%, 100% { transform: scale(1);    opacity: 0.7; }
+  50%      { transform: scale(1.18); opacity: 1;   }
+}
+
+.animate-fade-up {
+  animation: fadeUp var(--dur-base) var(--ease-glide) both;
+}
+.animate-slide-right {
+  animation: slideInRight var(--dur-base) var(--ease-glide) both;
+}
+.animate-slide-left {
+  animation: slideInLeft var(--dur-base) var(--ease-glide) both;
+}
+/* Message-send motif: the just-sent bubble rises from the composer. Reuses
+   fadeUp's keyframe (translateY 8px reads as "~6px" at this small scale) but
+   at --dur-fast, since a chat bubble should feel instantaneous, not like a
+   heavier surface arriving. ChatPanel applies the same values via its own
+   framer-motion transition; this class covers the plain-CSS community
+   ConversationThread, whose messages are keyed by a stable seq so the
+   animation only ever fires on a genuinely new bubble's mount. */
+.animate-message-in {
+  animation: fadeUp var(--dur-fast) var(--ease-glide) both;
+}
+
+/* Business dashboard charts: bars rise from the baseline (staggered inline via
+   animation-delay) and the views line is revealed left-to-right, like a route. */
+@keyframes biz-bar-grow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+@keyframes biz-reveal-x {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+.biz-bar {
+  transform-origin: bottom;
+  animation: biz-bar-grow 300ms var(--ease-glide) both;
+}
+.biz-reveal {
+  animation: biz-reveal-x var(--dur-base) var(--ease-glide) 80ms both;
+}
+.biz-progress {
+  transition: width var(--dur-slow) var(--ease-glide);
+}
+@keyframes biz-bar-grow-x {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.biz-bar-x {
+  transform-origin: left;
+  animation: biz-bar-grow-x 300ms var(--ease-glide) both;
+}
+/* Skeleton escape hatch: only surfaces if the page script never replaced the
+   skeleton (e.g. a dev chunk failed to load), when no JS timer can run. */
+@keyframes biz-stuck-in {
+  from { opacity: 0; visibility: hidden; }
+  to   { opacity: 1; visibility: visible; }
+}
+.biz-stuck {
+  animation: biz-stuck-in var(--dur-base) ease-out 8s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .biz-bar,
+  .biz-bar-x,
+  .biz-reveal { animation: none; }
+  .biz-progress { transition: none; }
+  .biz-stuck { animation-duration: 0s; }
+}
+
+/* ── Business dashboard: dark theme ─────────────────────────────────────────
+   `html.biz-dark` is set before paint by the root layout script (key
+   `hodari_biz_theme`). Only the content column (.biz-surface) is remapped; the
+   sidebar and the Impact card are dark in both themes. `:where()` keeps each
+   rule at utility specificity so hover/focus variants still win. Orange and
+   green fills keep the brand values; orange/green/red TEXT is lightened
+   because #C2410C / #1F6B43 / #B91C1C fall under 4.5:1 on #2A2A2D. */
+:root {
+  --biz-grid: #E4E4E7;
+  --biz-ink: #18181B;
+  --biz-empty-bar: #E4E4E7;
+}
+html.biz-dark {
+  --biz-grid: #45454B;
+  --biz-ink: #F4F4F5;
+  --biz-empty-bar: #4A4A50;
+  color-scheme: dark;
+}
+html.biz-dark #biz-scroll { background-color: #1E1E20; }
+html.biz-dark header.biz-surface { background-color: rgb(30 30 32 / 0.95); border-color: #3A3A3F; }
+html.biz-theming #biz-scroll,
+html.biz-theming #biz-scroll * {
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease, fill 200ms ease, stroke 200ms ease !important;
+}
+
+:where(html.biz-dark .biz-surface) .bg-white:not(:where(.biz-native, .biz-native *)),
+:where(html.biz-dark .biz-surface) .focus\:bg-white:focus:not(:where(.biz-native, .biz-native *)) { background-color: #2A2A2D; }
+:where(html.biz-dark .biz-surface) .bg-white\/95 { background-color: rgb(30 30 32 / 0.95); }
+:where(html.biz-dark .biz-surface) .bg-white\/80 { background-color: rgb(42 42 45 / 0.85); }
+:where(html.biz-dark .biz-surface) :is(.bg-\[\#F4F4F5\], .bg-\[\#F7F7F8\], .bg-\[\#FAFAFA\], .bg-\[\#EEF0F2\], .bg-\[\#E4E4E7\]):not(:where(.biz-native, .biz-native *)) { background-color: #333337; }
+:where(html.biz-dark .biz-surface) :is(.hover\:bg-\[\#F4F4F5\], .hover\:bg-\[\#F7F7F8\], .hover\:bg-\[\#F1F1F3\], .hover\:bg-white):hover:not(:where(.biz-native, .biz-native *)) { background-color: #3A3A3F; }
+
+:where(html.biz-dark .biz-surface) :is(.border-\[\#E4E4E7\], .border-\[\#F4F4F5\], .border-\[\#F0F0F2\], .divide-\[\#F4F4F5\] > *):not(:where(.biz-native, .biz-native *)) { border-color: #3A3A3F; }
+:where(html.biz-dark .biz-surface) .border-\[\#D4D4D8\]:not(:where(.biz-native, .biz-native *)) { border-color: #4A4A50; }
+:where(html.biz-dark .biz-surface) .border-\[\#A1A1AA\] { border-color: #71717A; }
+:where(html.biz-dark .biz-surface) .hover\:border-\[\#A1A1AA\]:hover { border-color: #71717A; }
+
+:where(html.biz-dark .biz-surface) :is(.text-\[\#18181B\], .text-\[\#27272A\], .text-gray-900):not(:where(.biz-native, .biz-native *)) { color: #F4F4F5; }
+:where(html.biz-dark .biz-surface) .hover\:text-\[\#18181B\]:hover { color: #F4F4F5; }
+:where(html.biz-dark .biz-surface) :is(.text-\[\#3F3F46\], .text-gray-700):not(:where(.biz-native, .biz-native *)) { color: #D4D4D8; }
+:where(html.biz-dark .biz-surface) :is(.text-\[\#52525B\], .text-\[\#71717A\], .text-gray-600):not(:where(.biz-native, .biz-native *)) { color: #B4B4BB; }
+:where(html.biz-dark .biz-surface) .text-\[\#A1A1AA\]:not(:where(.biz-native, .biz-native *)) { color: #8B8B93; }
+:where(html.biz-dark .biz-surface) .placeholder\:text-\[\#A1A1AA\]::placeholder { color: #7C7C85; }
+
+:where(html.biz-dark .biz-surface) :is(.text-\[\#C2410C\], .text-\[\#9A3412\]):not(:where(.biz-native, .biz-native *)) { color: #FF9D66; }
+:where(html.biz-dark .biz-surface) .hover\:text-\[\#C2410C\]:hover { color: #FF9D66; }
+:where(html.biz-dark .biz-surface) :is(.bg-\[\#FDE8DC\], .bg-\[\#FFF7F2\]):not(:where(.biz-native, .biz-native *)) { background-color: rgb(232 103 42 / 0.16); }
+:where(html.biz-dark .biz-surface) .hover\:bg-\[\#FFF7F2\]:hover { background-color: rgb(232 103 42 / 0.16); }
+:where(html.biz-dark .biz-surface) :is(.text-\[\#1F6B43\], .text-\[\#2E8B57\]):not(:where(.biz-native, .biz-native *)) { color: #6FD39B; }
+:where(html.biz-dark .biz-surface) .bg-\[\#2E8B57\]\/10 { background-color: rgb(46 139 87 / 0.2); }
+:where(html.biz-dark .biz-surface) :is(.text-\[\#B91C1C\], .text-\[\#991B1B\], .text-\[\#DC2626\], .text-\[\#7F1D1D\]):not(:where(.biz-native, .biz-native *)) { color: #FCA5A5; }
+:where(html.biz-dark .biz-surface) .hover\:text-\[\#B91C1C\]:hover { color: #FCA5A5; }
+:where(html.biz-dark .biz-surface) :is(.bg-red-50, .bg-red-100, .bg-\[\#FEF2F2\]):not(:where(.biz-native, .biz-native *)) { background-color: rgb(220 38 38 / 0.16); }
+:where(html.biz-dark .biz-surface) .hover\:bg-\[\#FEF2F2\]:hover { background-color: rgb(220 38 38 / 0.16); }
+:where(html.biz-dark .biz-surface) .bg-red-50\/60 { background-color: rgb(220 38 38 / 0.1); }
+:where(html.biz-dark .biz-surface) :is(.border-red-200, .border-\[\#FECACA\], .border-\[\#FCA5A5\]) { border-color: rgb(248 113 113 / 0.4); }
+:where(html.biz-dark .biz-surface) .hover\:border-red-300:hover { border-color: rgb(248 113 113 / 0.6); }
+:where(html.biz-dark .biz-surface) :is(.bg-\[\#FFF8E1\], .bg-amber-50, .bg-amber-100):not(:where(.biz-native, .biz-native *)) { background-color: rgb(224 168 0 / 0.16); }
+:where(html.biz-dark .biz-surface) :is(.text-\[\#854D0E\], .text-\[\#713F12\], .text-amber-700, .text-amber-800, .text-amber-950):not(:where(.biz-native, .biz-native *)) { color: #FCD34D; }
+
+:where(html.biz-dark .biz-surface) .biz-primary { background-color: #F4F4F5; color: #18181B; }
+:where(html.biz-dark .biz-surface) .biz-primary:hover:not(:disabled) { background-color: #D4D4D8; }
+:where(html.biz-dark .biz-surface) .ring-white { --tw-ring-color: #2A2A2D; }
+:where(html.biz-dark .biz-surface) .border-white { border-color: #2A2A2D; }
+:where(html.biz-dark .biz-surface) .bg-\[\#2E8B57\]\/\[0\.07\] { background-color: rgb(46 139 87 / 0.16); }
+:where(html.biz-dark .biz-surface) .bg-\[\#2E8B57\]\/\[0\.06\] { background-color: rgb(46 139 87 / 0.12); }
+
+.ticket-perf {
+  border-left: 2px dashed var(--border);
+}
+
+/* Route-draw motif: a thin gold line draws left-to-right like a route
+   polyline, reused everywhere a "thinking"/loading affordance is needed. */
+.thinking-ring {
+  position: relative;
+  width: 20px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(245, 106, 0, 0.16);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.thinking-ring::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #F56A00;
+  transform-origin: left center;
+  animation: route-draw 1.4s var(--ease-glide) infinite;
+}
+
+/* ── Micro-interactions ───────────────────────────────────────────────────
+   Shared press feedback so every button feels the same without hand-editing
+   each one. Apply `.btn-press` alongside a button's existing classes. */
+.btn-press {
+  transition: transform var(--dur-fast) var(--ease-out-soft);
+}
+.btn-press:active {
+  transform: scale(0.97);
+}
+
+/* Presence dot: one-shot pulse on the offline→online transition only (class
+   is added/removed by EmojiAvatar.tsx on the flip) — never a perpetual loop. */
+.animate-presence-pulse {
+  animation: presence-pulse var(--dur-slow) var(--ease-glide) 1 both;
+}
+
+.scan-dot:nth-child(1) { animation: scan 1.2s ease-in-out infinite 0ms; }
+.scan-dot:nth-child(2) { animation: scan 1.2s ease-in-out infinite 150ms; }
+.scan-dot:nth-child(3) { animation: scan 1.2s ease-in-out infinite 300ms; }
+
+/* ── Markdown prose ───────────────────────────────────────────────────────── */
+.prose-hodari p { font-size: 0.8125rem; line-height: 1.65; margin-bottom: 0.6rem; color: var(--text-primary); }
+.prose-hodari p:last-child { margin-bottom: 0; }
+.prose-hodari strong { color: var(--text-primary); font-weight: 600; }
+.prose-hodari em { color: var(--text-secondary); font-style: italic; }
+
+.prose-hodari ul { margin: 0.5rem 0; padding: 0; list-style: none; }
+.prose-hodari ul > li { display: flex; gap: 0.5rem; font-size: 0.8125rem; line-height: 1.6; margin-bottom: 0.3rem; color: var(--text-primary); }
+.prose-hodari ul > li > .bullet { color: rgba(245, 106, 0, 0.55); flex-shrink: 0; font-size: 1em; line-height: 1.6; }
+.prose-hodari ul > li:last-child { margin-bottom: 0; }
+
+.prose-hodari ol { margin: 0.65rem 0; padding-left: 1.5rem; list-style: decimal; text-align: left; }
+.prose-hodari ol > li { font-size: 0.8125rem; line-height: 1.65; margin-bottom: 0.45rem; padding-left: 0.15rem; color: var(--text-primary); text-align: left; }
+.prose-hodari ol > li > .bullet { display: none; }
+.prose-hodari ol > li:last-child { margin-bottom: 0; }
+
+.prose-hodari h1, .prose-hodari h2, .prose-hodari h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+.prose-hodari h1 { font-size: 1rem; }
+.prose-hodari h2 { font-size: 0.9375rem; }
+.prose-hodari h3 { font-size: 0.8125rem; font-family: 'DM Mono', Menlo, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #F56A00; font-weight: 500; }
+
+.prose-hodari code {
+  font-family: 'DM Mono', Menlo, monospace;
+  font-size: 0.75rem;
+  background: rgb(var(--color-surface2));
+  border-radius: 0.25rem;
+  padding: 0.125rem 0.375rem;
+  color: rgba(245, 106, 0, 0.85);
+  border: 1px solid var(--border);
+}
+.prose-hodari blockquote {
+  border-left: 2px solid rgba(245, 106, 0, 0.3);
+  padding-left: 0.75rem;
+  font-style: italic;
+  color: var(--text-secondary);
+  margin: 0.5rem 0;
+}
+.prose-hodari hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 0.75rem 0;
+}
+.prose-hodari a { color: #F56A00; text-decoration: none; }
+.prose-hodari a:hover { text-decoration: underline; }
+
+/* ── Glassmorphism ────────────────────────────────────────────────────────── */
+.glass {
+  background: rgba(18, 18, 22, 0.55);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 12px 32px -12px rgba(0, 0, 0, 0.60), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+:root:not(.dark) .glass {
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(20, 18, 14, 0.08);
+  box-shadow: 0 12px 32px -14px rgba(0, 0, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.70);
+}
+.glass-active {
+  border-color: rgba(245, 106, 0, 0.55);
+  box-shadow: 0 14px 40px -10px rgba(245, 106, 0, 0.30), 0 0 0 1px rgba(245, 106, 0, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+}
+
+/* ── Streaming caret ──────────────────────────────────────────────────────── */
+.stream-caret {
+  display: inline-block;
+  width: 7px;
+  height: 0.95em;
+  margin-left: 3px;
+  vertical-align: -2px;
+  border-radius: 1px;
+  background: #F56A00;
+  animation: caret-blink 1s steps(1, end) infinite;
+}
+
+.stream-caret-fade {
+  animation: caret-blink 1s steps(1, end) infinite, caret-fade-out 0.4s ease forwards;
+}
+
+.user-loc {
+  display: block;
+  position: relative;
+  width: 22px;
+  height: 22px;
+}
+.user-loc__dot {
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: #4285F4;
+  border: 2.5px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.45);
+}
+.user-loc__pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(66, 133, 244, 0.35);
+  animation: user-loc-pulse 2.2s ease-out infinite;
+}
+@keyframes user-loc-pulse {
+  0% { transform: scale(0.65); opacity: 0.65; }
+  70% { transform: scale(2.15); opacity: 0; }
+  100% { transform: scale(2.15); opacity: 0; }
+}
+
+.voice-orb-pulse  { animation: voice-orb-pulse  1s ease-in-out infinite; }
+.voice-orb-pulse-2 { animation: voice-orb-pulse-2 0.66s ease-in-out infinite; }
+
+/* ── AI-highlighted map markers ──────────────────────────────────────────────
+   Glowing, gently bouncing badge so an AI-marked place stands out clearly from
+   the plain numbered pins and Google's POI icons. Color comes from --mk. */
+.hodari-glow-marker {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  transform-origin: 50% 100%;
+  animation: hodari-marker-bounce 1.5s ease-in-out infinite;
+  cursor: pointer;
+}
+.hodari-glow-marker__ring {
+  position: absolute;
+  inset: 3px;
+  border-radius: 50%;
+  background: var(--mk, #1FA463);
+  opacity: 0.45;
+  animation: hodari-marker-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+.hodari-glow-marker__dot {
+  position: absolute;
+  inset: 4px;
+  border-radius: 50%;
+  background: var(--mk, #1FA463);
+  border: 2.5px solid #fff;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.4), 0 0 16px var(--mk, #1FA463);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1;
+}
+/* small downward pointer so it reads as a pin at the exact spot */
+.hodari-glow-marker__tip {
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 8px;
+  height: 8px;
+  background: var(--mk, #1FA463);
+  border-right: 2.5px solid #fff;
+  border-bottom: 2.5px solid #fff;
+  transform: translateX(-50%) rotate(45deg);
+}
+.hodari-pin {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+}
+.hodari-pin--result {
+  width: 42px;
+  height: 42px;
+}
+.hodari-pin--result .hodari-glow-marker__dot {
+  font-size: 15px;
+}
+.hodari-pin--dim {
+  transform: scale(0.82);
+  opacity: 0.72;
+}
+.hodari-pin__label {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  max-width: 9rem;
+  transform: translateX(-50%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  padding: 1px 6px;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.3;
+  color: #1a1a1a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+}
+.hodari-cluster {
+  display: flex;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  background: #1c1917;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 750;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+.map-control-stack {
+  position: absolute;
+  right: 12px;
+  bottom: max(28px, calc(env(safe-area-inset-bottom, 0px) + 16px));
+  z-index: 60;
+  display: flex;
+  max-height: calc(100% - 88px);
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.map-control-stack > * {
+  pointer-events: auto;
+}
+.hodari-pin .hodari-glow-marker__ring,
+.hodari-pin .hodari-glow-marker__tip {
+  opacity: 0;
+  animation: none;
+}
+.hodari-pin .hodari-glow-marker__dot {
+  background: #fff;
+  color: var(--mk, #F56A00);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+.hodari-pin__badge {
+  position: absolute;
+  right: -2px;
+  top: -2px;
+  display: flex;
+  height: 16px;
+  width: 16px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+.hodari-pin--pending .hodari-glow-marker__dot {
+  background: #fff;
+  color: #6b5e4e;
+  box-shadow: none;
+  border: 2px dashed #c4a35a;
+}
+@keyframes hodari-marker-ping {
+  0%   { transform: scale(0.7); opacity: 0.55; }
+  70%  { transform: scale(1.7); opacity: 0; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+@keyframes hodari-marker-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-slide-right,
+  .animate-slide-left,
+  .animate-message-in {
+    animation: fadeIn 0.1s ease-out both;
+  }
+  .stream-caret,
+  .stream-caret-fade {
+    animation: none;
+  }
+  .animate-pulse,
+  .thinking-ring::after,
+  .voice-orb-pulse,
+  .voice-orb-pulse-2,
+  .user-loc__pulse,
+  .animate-presence-pulse,
+  .hodari-glow-marker,
+  .hodari-glow-marker__ring,
+  .scan-dot {
+    animation: none !important;
+  }
+  .btn-press:active {
+    transform: none;
+  }
+}

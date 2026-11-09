@@ -1,0 +1,117 @@
+@import "../../shared-branding/design-tokens/tokens.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-inter), sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-space-grotesk), sans-serif;
+  }
+  body {
+    background-color: #ffffff;
+    color: var(--cr-ink);
+    overflow-x: hidden;
+  }
+}
+
+/* Premium Dark Hero Background with moving glow */
+.premium-hero-bg {
+  background-color: #030712;
+  background-image: 
+    radial-gradient(circle at 15% 50%, rgba(16, 185, 129, 0.15), transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(56, 189, 248, 0.15), transparent 40%);
+  position: relative;
+}
+
+.premium-hero-bg::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(circle at 50% 10%, rgba(56, 189, 248, 0.1) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Subtle grid for tech feel */
+.bg-grid-pattern {
+  background-size: 40px 40px;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+                    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+
+/* Glassmorphism for UI elements */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-panel-dark {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.text-gradient-primary {
+  background: linear-gradient(to right, #10B981, #38BDF8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── ANIMATIONS ────────────────────────────────────────────────────────── */
+
+/* Moving bus along path */
+@keyframes dash {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+.animate-dash {
+  animation: dash 4s linear infinite;
+}
+
+/* Pulsing map markers */
+@keyframes ping-slow {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+.animate-ping-slow {
+  animation: ping-slow 2.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Floating notification badge */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+/* Fade in up */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 3D Mockup Effect */
+.mockup-3d {
+  transform: perspective(1200px) rotateX(5deg) rotateY(0deg) scale3d(1, 1, 1);
+  transition: transform 0.5s ease;
+}
+.mockup-3d:hover {
+  transform: perspective(1200px) rotateX(0deg) rotateY(-2deg) scale3d(1.02, 1.02, 1.02);
+}

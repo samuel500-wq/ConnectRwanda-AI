@@ -1,0 +1,112 @@
+# 🇷🇼 CONNECTRWANDA AI — QUICK RUN GUIDE
+
+## 🛠️ PREREQUISITES
+
+Make sure you have installed:
+- Node.js (18 or 20)
+- Python (3.10+)
+- XAMPP (MySQL)
+
+Start MySQL from XAMPP before running the project.
+
+---
+
+## 📦 1. INSTALL DEPENDENCIES
+
+Run these commands in your terminal from the project root directory.
+
+### [1] Landing Page
+
+```bash
+cd connectrwanda-platform
+npm install
+cd ..
+```
+
+### [2] RouteView Frontend
+
+```bash
+cd routeviews/frontend
+npm install
+cd ../..
+```
+
+### [3] RouteView Backend
+
+```bash
+cd routeviews/backend
+npm install
+cd ../..
+```
+
+### [4] RouteView ML Service
+
+```bash
+cd routeviews/ml
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+cd ../..
+```
+
+*For macOS/Linux, activate the environment using `source .venv/bin/activate` instead.*
+
+---
+
+## 🚀 2. START THE PROJECT
+
+Open **4 separate terminals** and run the following commands.
+
+### [TERMINAL 1] RouteView Backend — Port 4000
+
+```bash
+cd routeviews/backend
+npm run dev
+```
+
+### [TERMINAL 2] RouteView ML Service — Port 8000
+
+```bash
+cd routeviews/ml
+.venv\Scripts\activate
+uvicorn service:app --port 8000
+```
+
+### [TERMINAL 3] RouteView Frontend — Port 3000
+
+```bash
+cd routeviews/frontend
+npm run dev
+```
+
+### [TERMINAL 4] ConnectRwanda Landing Page — Port 3002
+
+```bash
+cd connectrwanda-platform
+npm run dev -- --port 3002
+```
+
+---
+
+## 🌍 3. OPEN IN YOUR BROWSER
+
+| Application | Address |
+|---|---|
+| 🏠 Landing Page | http://localhost:3002 |
+| 🚌 RouteView App | http://localhost:3000 |
+| 🔐 Admin Login | http://localhost:3000/admin/login |
+
+### 🔑 DEFAULT ADMIN LOGIN
+
+- **Email:** admin@routeview.rw
+- **Password:** Password123!
+
+---
+
+**IMPORTANT:**
+- Install dependencies only once, unless packages change.
+- Ensure MySQL is running in XAMPP.
+- Keep all four terminals running while using the platform.
+- Ensure environment files (`.env` and `.env.local`) are configured.
+
+🇷🇼 **CONNECTRWANDA AI — Connecting People, Places, and Possibilities.**

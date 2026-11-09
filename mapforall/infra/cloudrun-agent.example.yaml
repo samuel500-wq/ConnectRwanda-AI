@@ -1,0 +1,101 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: hodari-agent
+  annotations:
+    run.googleapis.com/launch-stage: BETA
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "5"
+        run.googleapis.com/execution-environment: gen2
+        # Bumped to force a new revision that re-reads the rotated, mapstools-only
+        # GOOGLE_MAPS_API_KEY secret (Maps key split for least privilege).
+        hodari.dev/key-rotation: "2026-06-15-keysplit"
+    spec:
+      serviceAccountName: hodari-agent@YOUR_GCP_PROJECT_ID.iam.gserviceaccount.com
+      containers:
+      # ── Main serving container ────────────────────────────────────────────
+      - name: hodari-agent
+        image: us-central1-docker.pkg.dev/YOUR_GCP_PROJECT_ID/hodari/agent@sha256:REPLACE_WITH_YOUR_IMAGE_DIGEST
+        ports:
+        - containerPort: 8080
+        resources:
+          limits:
+            memory: 2Gi
+            cpu: "2"
+        env:
+        - name: AGENT_SERVICE
+          value: hodari
+        - name: GOOGLE_GENAI_USE_VERTEXAI
+          value: "TRUE"
+        - name: GOOGLE_CLOUD_PROJECT
+          value: YOUR_GCP_PROJECT_ID
+        - name: GOOGLE_CLOUD_LOCATION
+          value: global
+        - name: GEMINI_MODEL
+          value: gemini-3.5-flash
+        - name: MONGODB_DATABASE
+          value: hodari
+        - name: MONGODB_MCP_URL
+          value: http://localhost:3100/mcp
+        # Community MCP sidecar (read-only profile/pins/reviews/taste-profile
+        # tools for personalization). Setting this URL is what gates the
+        # toolset into the agent — see agents/hodari/tools/community_mcp.py.
+        - name: COMMUNITY_MCP_URL
+          value: http://localhost:3200/mcp
+        - name: HODARI_PROFILING
+          value: "0"
+        - name: HODARI_CONTEXT_CACHE
+          value: "1"
+        - name: GOOGLE_MAPS_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: GOOGLE_MAPS_API_KEY
+              key: latest
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: MONGODB_URI
+              key: latest
+        startupProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 12
+
+      # ── MongoDB MCP sidecar (localhost:3100) ──────────────────────────────
+      - name: mongodb-mcp
+        image: us-central1-docker.pkg.dev/YOUR_GCP_PROJECT_ID/hodari/mongodb-mcp@sha256:REPLACE_WITH_YOUR_IMAGE_DIGEST
+        resources:
+          limits:
+            memory: 256Mi
+            cpu: "0.5"
+        env:
+        - name: MDB_MCP_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: MONGODB_URI
+              key: latest
+
+      # ── Community MCP sidecar (localhost:3200) ────────────────────────────
+      # No public port — reachable only from the main container over the
+      # shared network namespace, same as mongodb-mcp above. Read-only;
+      # structurally cannot read `messages`/`conversations` (see server.py).
+      - name: community-mcp
+        image: us-central1-docker.pkg.dev/YOUR_GCP_PROJECT_ID/hodari/community-mcp@sha256:REPLACE_WITH_YOUR_IMAGE_DIGEST
+        resources:
+          limits:
+            memory: 256Mi
+            cpu: "0.5"
+        env:
+        - name: MONGODB_DATABASE
+          value: hodari
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: MONGODB_URI
+              key: latest

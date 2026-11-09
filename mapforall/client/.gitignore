@@ -1,0 +1,13 @@
+.next/
+node_modules/
+.env.local
+next-env.d.ts
+*.tsbuildinfo
+*.log
+
+# User-uploaded avatars (keep directory via .gitkeep)
+public/uploads/avatars/*
+!public/uploads/avatars/.gitkeep
+
+# local hero-video recording scratch (frames/screens)
+.rec/

@@ -1,0 +1,68 @@
+/* shared-branding/design-tokens/tokens.css
+   Single source of truth for ConnectRwanda AI visual tokens.
+   Consumed by connectrwanda-platform and (optionally) RouteView/MapForAll. */
+
+:root {
+  /* Brand — sky primary, amber accent (matches landing page identity) */
+  --cr-primary:        #0284C7; /* sky-600 */
+  --cr-primary-600:    #0369A1; /* sky-700 */
+  --cr-accent:         #D97706; /* amber-600 */
+  --cr-accent-warm:    #EA580C; /* orange-600 */
+
+  /* Ink & surfaces */
+  --cr-ink:            #0F172A; /* slate-900 */
+  --cr-ink-muted:      #475569; /* slate-600 */
+  --cr-surface:        #FFFFFF;
+  --cr-surface-muted:  #F8FAFC; /* slate-50 */
+  --cr-border:         #E2E8F0; /* slate-200 */
+
+  /* Typography */
+  --cr-font-sans:      "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+                       "Helvetica Neue", Arial, sans-serif;
+  --cr-font-display:   "Sora", var(--cr-font-sans);
+
+  /* Radii */
+  --cr-radius-sm:      8px;
+  --cr-radius-md:      14px;
+  --cr-radius-lg:      22px;
+  --cr-radius-pill:    9999px;
+
+  /* Shadows */
+  --cr-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --cr-shadow-md: 0 8px 28px rgba(15, 23, 42, 0.08);
+  --cr-shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.14);
+
+  /* Motion */
+  --cr-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Shared primitives — safe to use anywhere in either app */
+.cr-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--cr-radius-md);
+  font-family: var(--cr-font-sans);
+  font-weight: 600;
+  background: var(--cr-primary);
+  color: #fff;
+  border: 0;
+  cursor: pointer;
+  transition: transform 0.2s var(--cr-ease),
+              background 0.2s var(--cr-ease);
+}
+.cr-btn:hover { background: var(--cr-primary-600); transform: translateY(-1px); }
+
+.cr-btn--ghost {
+  background: transparent;
+  color: var(--cr-ink);
+  border: 1px solid var(--cr-border);
+}
+
+.cr-card {
+  background: var(--cr-surface);
+  border: 1px solid var(--cr-border);
+  border-radius: var(--cr-radius-lg);
+  box-shadow: var(--cr-shadow-md);
+}
